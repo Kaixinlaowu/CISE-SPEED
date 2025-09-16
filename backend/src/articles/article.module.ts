@@ -6,7 +6,6 @@ import { ArticleController } from './article.controller';
 
 @Module({
   imports: [
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     MongooseModule.forFeature([{ name: Article.name, schema: ArticleSchema }]),
   ],
   controllers: [ArticleController],

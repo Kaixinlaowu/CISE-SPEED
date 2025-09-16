@@ -8,7 +8,7 @@ import { apiClient } from '@/lib/api-client';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('search');
-  const [userRole, setUserRole] = useState('user'); // 默认用户角色
+  const [userRole] = useState('user'); // 默认用户角色
 
   return (
     <div className={styles.container}>
@@ -62,7 +62,7 @@ export default function Home() {
       </main>
 
       <footer className={styles.footer}>
-        <p>© 2023 学术信息提取与分析平台 - 使用 Next.js 构建</p>
+        <p>© 2025 学术信息提取与分析平台</p>
       </footer>
     </div>
   );
