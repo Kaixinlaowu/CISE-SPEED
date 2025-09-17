@@ -10,7 +10,7 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(
-      process.env.MONGO_URI || 'mongodb://localhost:27017/speed',
+      process.env.MONGO_URI || 'mongodb://localhost:27017/',
     ),
     ArticleModule,
     UserModule,

@@ -5,6 +5,7 @@ import styles from '../styles/Home.module.css';
 import { useApi } from './api/useApi';
 import { AnalysisData, Article, ExtractionResult, User } from '@/types/api';
 import { apiClient } from '@/lib/api-client';
+import router from 'next/router';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('search');
@@ -49,8 +50,32 @@ export default function Home() {
           )}
         </nav>
         <div className={styles.userPanel}>
-          <span>欢迎用户</span>
-          <button>退出</button>
+          {userRole ? (
+            <>
+              <button 
+                className={styles.userButton}
+                onClick={() => router.push('/login')}
+              >
+                欢迎用户 ({userRole})
+              </button>
+              <button 
+                className={styles.logoutButton}
+                onClick={() => {
+                  localStorage.clear();
+                  router.push('/login');
+                }}
+              >
+                退出
+              </button>
+            </>
+          ) : (
+            <button 
+              className={styles.loginButton}
+              onClick={() => router.push('/login')}
+            >
+              登录
+            </button>
+          )}
         </div>
       </header>
 

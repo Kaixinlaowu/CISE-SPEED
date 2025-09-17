@@ -1,6 +1,7 @@
 // user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 
 export type UserDocument = User & Document;
 
@@ -15,6 +16,9 @@ export class User {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Prop({ required: true })
+  password: string; // 添加密码字段
+
   @Prop({
     required: true,
     enum: ['admin', 'editor', 'viewer'],
@@ -27,6 +31,7 @@ export class User {
 
   @Prop()
   lastLogin?: Date;
+
   // 虚拟字段，用于获取创建时间（由 timestamps 自动生成）
   createdAt: Date;
 
@@ -35,3 +40,26 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// 添加密码加密中间件
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+
+  try {
+    const saltRounds = 10;
+    this.password = await bcrypt.hash(this.password, saltRounds);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// 添加实例方法用于密码验证
+UserSchema.methods.comparePassword = async function (
+  candidatePassword: string,
+): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return bcrypt.compare(candidatePassword, this.password);
+};

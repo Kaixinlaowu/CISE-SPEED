@@ -16,32 +16,46 @@ class ApiClient {
   constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '/api') {
     this.baseURL = baseURL;
   }
+  // 用户登录
+async login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
+  return this.request<{ token: string; user: User }>('/users/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', // 确保告诉后端是 JSON
+    },
+    body: JSON.stringify(credentials),
+  });
+}
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
-
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data: ApiResponse<T> = await response.json();
-    
-    if (!data.success) {
-      throw new Error(data.error || 'API request failed');
-    }
-
-    return data.data;
+   // 获取当前用户信息
+  async getProfile(): Promise<User> {
+    return this.request<User>('/auth/profile');
   }
+
+  // 退出登录
+  async logout(): Promise<void> {
+    return this.request<void>('/auth/logout', { method: 'POST' });
+  }
+  private async request<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const url = `${this.baseURL}${endpoint}`;
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  }
+
+  // 直接解析返回值
+  return response.json() as Promise<T>;
+}
 
   // 文章搜索
   async searchArticles(params: ArticleSearchParams): Promise<ArticleSearchResponse> {
