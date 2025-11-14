@@ -4,9 +4,9 @@ name: CI - Build, Test & Lint
 # 触发：push 或 PR 到 main/develop
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   build-test-lint:
