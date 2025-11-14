@@ -1,75 +1,36 @@
-// article.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Article } from './article.schema';
 import { Model } from 'mongoose';
-import { Article, ArticleDocument } from './article.schema';
 import { CreateArticleDto } from '../dtos/create-article.dto';
 import { UpdateArticleDto } from '../dtos/update-article.dto';
 
 @Injectable()
 export class ArticleService {
   constructor(
-    @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
+    @InjectModel(Article.name) private articleModel: Model<Article>,
   ) {}
 
-  async create(createArticleDto: CreateArticleDto): Promise<ArticleDocument> {
-    const article = new this.articleModel(createArticleDto);
-    return article.save();
+  create(dto: CreateArticleDto) {
+    const created = new this.articleModel(dto);
+    return created.save();
   }
 
-  async findAll(): Promise<ArticleDocument[]> {
-    return this.articleModel.find().exec();
+  findAll() {
+    return this.articleModel.find();
   }
 
-  async findOne(id: string): Promise<ArticleDocument | null> {
-    return this.articleModel.findById(id).exec();
+  async findOne(id: string) {
+    const article = await this.articleModel.findById(id);
+    if (!article) throw new NotFoundException('Article not found');
+    return article;
   }
 
-  async findByDoi(doi: string): Promise<ArticleDocument | null> {
-    return this.articleModel.findOne({ doi }).exec();
+  update(id: string, dto: UpdateArticleDto) {
+    return this.articleModel.findByIdAndUpdate(id, dto, { new: true });
   }
 
-  async findByAuthor(author: string): Promise<ArticleDocument[]> {
-    return this.articleModel.find({ authors: author }).exec();
-  }
-
-  async findByJournal(journal: string): Promise<ArticleDocument[]> {
-    return this.articleModel.find({ journal }).exec();
-  }
-
-  async findByYear(year: number): Promise<ArticleDocument[]> {
-    return this.articleModel.find({ year }).exec();
-  }
-
-  async update(
-    id: string,
-    updateArticleDto: UpdateArticleDto,
-  ): Promise<ArticleDocument | null> {
-    return this.articleModel
-      .findByIdAndUpdate(id, updateArticleDto, { new: true })
-      .exec();
-  }
-
-  async incrementCitations(id: string): Promise<ArticleDocument | null> {
-    return this.articleModel
-      .findByIdAndUpdate(id, { $inc: { citations: 1 } }, { new: true })
-      .exec();
-  }
-
-  async delete(id: string): Promise<ArticleDocument | null> {
-    return this.articleModel.findByIdAndDelete(id).exec();
-  }
-
-  async search(query: string): Promise<ArticleDocument[]> {
-    return this.articleModel
-      .find({
-        $or: [
-          { title: { $regex: query, $options: 'i' } },
-          { abstract: { $regex: query, $options: 'i' } },
-          { journal: { $regex: query, $options: 'i' } },
-          { authors: { $in: [new RegExp(query, 'i')] } },
-        ],
-      })
-      .exec();
+  delete(id: string) {
+    return this.articleModel.findByIdAndDelete(id);
   }
 }

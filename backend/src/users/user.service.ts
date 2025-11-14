@@ -1,83 +1,48 @@
-// user.service.ts
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { User } from './user.schema';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    // 检查邮箱是否已存在
-    const existingUser = await this.findByEmail(createUserDto.email);
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
+  async create(data: CreateUserDto): Promise<User> {
+    const created = new this.userModel(data);
+    return created.save();
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().select('-password');
+  }
+
+  async findOne(id: string): Promise<User> {
+    const user = await this.userModel.findById(id).select('-password');
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async update(id: string, data: UpdateUserDto): Promise<User> {
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, data, {
+        new: true,
+      })
+      .exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with id ${id} not found`);
     }
 
-    const user = new this.userModel({
-      ...createUserDto,
-      isActive: createUserDto.isActive ?? true,
-      role: createUserDto.role ?? 'viewer',
-    });
-    return user.save();
+    return updatedUser;
   }
 
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
+  async delete(id: string) {
+    return this.userModel.findByIdAndDelete(id);
   }
 
-  async findOne(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).exec();
-  }
-
-  async findByEmail(email: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ email }).exec();
-  }
-
-  async findByUsername(username: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ username }).exec();
-  }
-
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
-      .exec();
-  }
-
-  async updateLastLogin(id: string): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, { lastLogin: new Date() }, { new: true })
-      .exec();
-  }
-
-  async delete(id: string): Promise<UserDocument | null> {
-    return this.userModel.findByIdAndDelete(id).exec();
-  }
-
-  async deactivate(id: string): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, { isActive: false }, { new: true })
-      .exec();
-  }
-
-  // 添加密码验证方法到 Service 层
-  async validateUserCredentials(
-    email: string,
-    password: string,
-  ): Promise<UserDocument | null> {
-    const user = await this.findByEmail(email);
-    if (!user) {
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    return isPasswordValid ? user : null;
+  async validateUser(username: string, password: string): Promise<User | null> {
+    return this.userModel.findOne({ username, password });
   }
 }

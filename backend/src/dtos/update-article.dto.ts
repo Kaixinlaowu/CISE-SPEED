@@ -1,11 +1,5 @@
-// update-article.dto.ts
-export class UpdateArticleDto {
-  title?: string;
-  authors?: string[];
-  journal?: string;
-  year?: number;
-  doi?: string;
-  abstract?: string;
-  url?: string;
-  citations?: number;
-}
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateArticleDto } from './create-article.dto';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+export class UpdateArticleDto extends PartialType(CreateArticleDto) {}
