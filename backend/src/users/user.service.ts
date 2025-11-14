@@ -9,6 +9,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema'; // 正确导入
 import { LoginUserDto } from '../dtos/login-user.dto';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from 'src/dtos/create-user.dto';
 
 @Injectable()
 export class UserService {
@@ -44,10 +45,9 @@ export class UserService {
   }
 
   /** 创建用户 */
-  async create(createUserDto: any) {
+  async create(createUserDto: CreateUserDto) {
     // 防止重复用户名
     const existing = await this.userModel.findOne({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       username: createUserDto.username,
     });
     if (existing) {
@@ -55,7 +55,6 @@ export class UserService {
     }
 
     // 加密密码
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     // 创建用户

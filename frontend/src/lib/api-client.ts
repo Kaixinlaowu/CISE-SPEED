@@ -54,8 +54,13 @@ export interface ApiError {
 // === API 方法封装 ===
 export const apiClient = {
   // 登录
-  login: (data: LoginRequest): Promise<LoginResponse> =>
-    api.post('/auth/login', data).then((res) => res.data),
+  login: (data: { username: string; password: string }): Promise<{
+    user: {
+      id: string;
+      username: string;
+      email?: string;
+    };
+  }> => api.post('/auth/login', data).then(res => res.data),
 
   // 获取用户列表（示例）
   getUsers: (): Promise<unknown[]> =>
