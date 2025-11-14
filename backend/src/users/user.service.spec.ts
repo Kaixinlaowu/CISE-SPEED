@@ -36,6 +36,7 @@ describe('UserService', () => {
     const result = await service.create({
       username: 'test',
       password: '123456',
+      email: '',
     });
 
     expect(result.username).toBe('test');
