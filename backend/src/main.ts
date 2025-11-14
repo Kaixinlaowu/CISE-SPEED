@@ -1,19 +1,24 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // 启用全局验证管道
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // 移除没有装饰器的属性
-      forbidNonWhitelisted: true, // 抛出错误如果有非白名单属性
-      transform: true, // 自动转换类型
-    }),
-  );
-  // 开启 CORS
-  app.enableCors();
-  await app.listen(process.env.PORT ?? 3001);
+
+  // 允许前端 localhost:3000 跨域
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
+
+  const PORT = process.env.PORT || 3001;
+  await app.listen(PORT);
+
+  console.log(`服务器运行在: http://localhost:${PORT}`);
+  console.log(`MongoDB 连接中...`);
 }
-bootstrap();
+
+bootstrap().catch((err) => {
+  console.error('启动失败:', err);
+  process.exit(1);
+});

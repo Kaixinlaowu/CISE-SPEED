@@ -1,48 +1,81 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+// src/users/user.service.ts
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './user.schema';
 import { Model } from 'mongoose';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import { UpdateUserDto } from '../dtos/update-user.dto';
+import { User, UserDocument } from './user.schema'; // 正确导入
+import { LoginUserDto } from '../dtos/login-user.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(data: CreateUserDto): Promise<User> {
-    const created = new this.userModel(data);
-    return created.save();
-  }
-
-  async findAll(): Promise<User[]> {
-    return this.userModel.find().select('-password');
-  }
-
-  async findOne(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).select('-password');
-    if (!user) throw new NotFoundException('User not found');
-    return user;
-  }
-
-  async update(id: string, data: UpdateUserDto): Promise<User> {
-    const updatedUser = await this.userModel
-      .findByIdAndUpdate(id, data, {
-        new: true,
-      })
-      .exec();
-
-    if (!updatedUser) {
-      throw new NotFoundException(`User with id ${id} not found`);
+  /** 登录 */
+  async login(dto: LoginUserDto) {
+    // 1. 查找用户（用 username）
+    const user = await this.userModel.findOne({ username: dto.username });
+    if (!user) {
+      throw new BadRequestException('用户名或密码错误');
     }
 
-    return updatedUser;
+    // 2. 验证密码
+    const isMatch = await bcrypt.compare(dto.password, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('用户名或密码错误');
+    }
+
+    // 3. 返回安全数据（不暴露 password）
+    return {
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email, // 可能为 undefined
+      },
+    };
   }
 
-  async delete(id: string) {
-    return this.userModel.findByIdAndDelete(id);
+  /** 获取所有用户（隐藏密码） */
+  async findAll() {
+    return this.userModel.find().select('-password').exec();
   }
 
-  async validateUser(username: string, password: string): Promise<User | null> {
-    return this.userModel.findOne({ username, password });
+  /** 创建用户 */
+  async create(createUserDto: any) {
+    // 防止重复用户名
+    const existing = await this.userModel.findOne({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      username: createUserDto.username,
+    });
+    if (existing) {
+      throw new BadRequestException('用户名已存在');
+    }
+
+    // 加密密码
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    // 创建用户
+    const createdUser = await this.userModel.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
+    // 返回时隐藏密码
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = createdUser.toObject();
+    return result;
+  }
+
+  /** （可选）根据 ID 查找用户 */
+  async findOne(id: string) {
+    const user = await this.userModel.findById(id).select('-password');
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+    return user;
   }
 }
