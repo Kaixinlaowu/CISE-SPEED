@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");  
@@ -118,9 +119,9 @@ const handleLogin = async (e: React.FormEvent) => {
 
           <div className="mt-6 text-center text-sm text-gray-600">
             没有账号？{" "}
-            <a href="/register" className="text-indigo-600 hover:underline font-medium">
+            <Link href="/register" className="text-indigo-600 hover:underline font-medium">
               立即注册
-            </a>
+            </Link>
           </div>
         </div>
 

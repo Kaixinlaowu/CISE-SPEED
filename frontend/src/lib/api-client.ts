@@ -19,8 +19,6 @@ api.interceptors.response.use(
       error.response?.data?.message ||
       error.message ||
       '网络错误，请稍后重试';
-
-    // 抛出结构化错误，方便 catch 捕获
     return Promise.reject({
       message,
       status: error.response?.status,
