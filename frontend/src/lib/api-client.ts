@@ -1,5 +1,13 @@
 // lib/api-client.ts
-import axios from 'axios';
+import { 
+  Article, 
+  ArticleSearchParams, 
+  ArticleSearchResponse,
+  ExtractionResult,
+  AnalysisData,
+  User,
+  SystemConfig
+} from '../types/api';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 

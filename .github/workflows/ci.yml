@@ -3,9 +3,9 @@ name: CI - Build, Test & Lint
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master , test ]
   pull_request:
-    branches: [ master ]
+    branches: [ master , test ]
 
 jobs:
   build-test-lint:
@@ -51,4 +51,8 @@ jobs:
       - name: Run Unit Tests (Login & Register)
         run: |
           cd ${{ matrix.app }}
-          npx jest --ci --passWithNoTests
+          if [ "${{ matrix.app }}" = "backend" ]; then
+            npx jest --config=jest.config.ts --ci --passWithNoTests
+          else
+            npx jest --ci --passWithNoTests
+          fi
