@@ -1,6 +1,5 @@
 // lib/api-client.ts
 import { 
-  ApiResponse, 
   Article, 
   ArticleSearchParams, 
   ArticleSearchResponse,

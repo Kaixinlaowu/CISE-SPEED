@@ -1,10 +1,4 @@
 // types/api.ts
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data: T;
-  message?: string;
-  error?: string;
-}
 
 // 文章相关类型
 export interface Article {
@@ -61,12 +55,14 @@ export interface KeyFigure {
 export interface Methodology {
   name: string;
   description: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   parameters?: Record<string, any>;
 }
 
 export interface Result {
   description: string;
   significance: 'high' | 'medium' | 'low';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supportingData?: any[];
 }
 
@@ -91,6 +87,7 @@ export interface VisualizationConfig {
   title: string;
   xAxis?: string;
   yAxis?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filters?: Record<string, any>;
 }
 
