@@ -8,6 +8,7 @@ class Database {
   private static instance: Database;
 
   private constructor() {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.connect();
   }
 

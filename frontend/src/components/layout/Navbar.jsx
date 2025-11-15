@@ -1,6 +1,7 @@
 // components/layout/Navbar.jsx
 import Link from "next/link";
 import { useRouter } from "next/router";
+import path from "path";
 import { useState, useEffect } from "react";
 
 export default function Navbar({ userRole = "user" }) {
@@ -23,9 +24,10 @@ export default function Navbar({ userRole = "user" }) {
   }, []);
 
   const navItems = [
-    { path: "/search", label: "文章搜索" },
+    {path: "/articles", label: "阅读文章" },
     { path: "/extract", label: "信息提取" },
     { path: "/analyze", label: "数据分析" },
+    {path: "/submit", label: "添加文章"}
   ];
 
   if (userRole === "admin") {
@@ -73,8 +75,6 @@ export default function Navbar({ userRole = "user" }) {
         >
           欢迎，{username}
         </button>
-
-        {/* 完全依赖 isLoggedIn，绝不调用 localStorage */}
         {isLoggedIn && (
           <button
             className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 text-sm"

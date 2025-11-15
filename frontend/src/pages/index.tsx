@@ -5,7 +5,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/search"); // 默认跳转到搜索页面
+    router.replace("/articles"); // 默认跳转到搜索页面
   }, [router]);
 
   return <div>Loading...</div>;

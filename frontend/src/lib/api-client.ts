@@ -63,7 +63,15 @@ export const apiClient = {
   // 获取用户列表（示例）
   getUsers: (): Promise<unknown[]> =>
     api.get('/users').then((res) => res.data),
-
+  createArticle: (data: {
+      title: string;
+      content: string;
+      category: string;
+      tags?: string[];
+      author: string;
+    }) => api.post('/articles', data).then(res => res.data),
+  delete: <T>(url: string): Promise<T> =>
+  api.delete(url).then(res => res.data),
   // 通用方法
   get: <T>(url: string, params?: unknown): Promise<T> =>
     api.get(url, { params }).then((res) => res.data),

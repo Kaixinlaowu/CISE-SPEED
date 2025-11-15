@@ -11,8 +11,14 @@ export class ArticleService {
     @InjectModel(Article.name) private articleModel: Model<Article>,
   ) {}
 
-  create(dto: CreateArticleDto) {
-    const created = new this.articleModel(dto);
+  async create(dto: CreateArticleDto) {
+    const created = new this.articleModel({
+      title: dto.title,
+      content: dto.content,
+      category: dto.category,
+      tags: dto.tags || [],
+      author: dto.author, // 直接存字符串
+    });
     return created.save();
   }
 

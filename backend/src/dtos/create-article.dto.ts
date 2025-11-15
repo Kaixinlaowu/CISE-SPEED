@@ -1,12 +1,9 @@
-import { IsString } from 'class-validator';
-
+// backend/src/dtos/create-article.dto.ts
+import { IsString, IsNotEmpty, IsArray, IsOptional } from 'class-validator';
 export class CreateArticleDto {
-  @IsString()
-  title: string;
-
-  @IsString()
-  content: string;
-
-  @IsString()
-  authorId: string;
+  @IsString() @IsNotEmpty() title: string;
+  @IsString() @IsNotEmpty() content: string;
+  @IsString() @IsNotEmpty() category: string;
+  @IsArray() @IsOptional() tags?: string[];
+  @IsString() @IsNotEmpty() author: string; // 任意名字
 }
