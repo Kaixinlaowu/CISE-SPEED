@@ -86,30 +86,31 @@ export default function SubmitPage() {
     }
   }, [router]);
 
-  // === 提交逻辑：作者名自由输入，不校验用户名 ===
-  const onSubmit = async (data: FormData) => {
-    setError("");
-    setLoading(true);
+  // === 提交逻辑 ===
+ // frontend/pages/submit.tsx → onSubmit
+const onSubmit = async (data: FormData) => {
+  setError("");
+  setLoading(true);
 
-    try {
-      await apiClient.post("/articles", {
-        title: data.title,
-        content: data.content,
-        category: data.category,
-        tags: data.tags
-          ? data.tags.split(",").map((t) => t.trim()).filter(Boolean)
-          : [],
-        author: data.author, 
-      });
+  try {
+    await apiClient.createArticle({  // 改用 createArticle！
+      title: data.title,
+      content: data.content,
+      category: data.category,
+      tags: data.tags
+        ? data.tags.split(",").map((t) => t.trim()).filter(Boolean)
+        : [],
+      author: data.author,
+    });
 
-      router.push("/articles");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      setError(err?.message || "提交失败，请重试");
-    } finally {
-      setLoading(false);
-    }
-  };
+    router.push("/articles");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    setError(err?.message || "提交失败，请重试");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,5 +1,5 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
-
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+@Schema({ timestamps: true }) // 自动添加 createdAt / updatedAt
 export class Article {
   @Prop({ required: true })
   title: string;

@@ -3,7 +3,6 @@
 
 import Navbar from "@/components/layout/Navbar";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
 import { apiClient } from "@/lib/api-client";
 import Link from "next/link";
 
@@ -17,7 +16,6 @@ interface Article {
 }
 
 export default function ArticlesPage() {
-  const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,13 +43,6 @@ export default function ArticlesPage() {
     fetchArticles();
   }, []);
 
-  // === 检查登录 ===
-  useEffect(() => {
-    const username = localStorage.getItem("username");
-    if (!username) {
-      router.push("/login");
-    }
-  }, [router]);
 
   // === 实时搜索（防抖）===
   useEffect(() => {

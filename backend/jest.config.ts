@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testMatch: ['<rootDir>/src/**/*.(spec|test).ts'],
-};
-=======
 // backend/jest.config.ts
 import type { Config } from 'jest';
 
@@ -20,4 +13,3 @@ const config: Config = {
 };
 
 export default config;
->>>>>>> c702b26f0f2f3f66a1c9459ebdb10b0c29a20213
