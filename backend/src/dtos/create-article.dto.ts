@@ -1,11 +1,12 @@
-// create-article.dto.ts
+import { IsString } from 'class-validator';
+
 export class CreateArticleDto {
+  @IsString()
   title: string;
-  authors: string[];
-  journal: string;
-  year: number;
-  doi?: string;
-  abstract?: string;
-  url?: string;
-  citations?: number;
+
+  @IsString()
+  content: string;
+
+  @IsString()
+  authorId: string;
 }

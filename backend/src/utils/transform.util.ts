@@ -18,3 +18,14 @@ export function toObjectIfNeeded<T>(document: T): T {
   }
   return document;
 }
+export const success = (data: any, message = 'OK') => ({
+  success: true,
+  message,
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  data,
+});
+
+export const fail = (message = 'Error') => ({
+  success: false,
+  message,
+});

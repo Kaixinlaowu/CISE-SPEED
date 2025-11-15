@@ -9,103 +9,75 @@ import {
   SystemConfig
 } from '../types/api';
 
-class ApiClient {
-  private baseURL: string;
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '/api') {
-    this.baseURL = baseURL;
+// 创建 axios 实例
+export const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// === 响应拦截器：统一错误处理（推荐保留）===
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      '网络错误，请稍后重试';
+    return Promise.reject({
+      message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
   }
-  // 用户登录
-async login(credentials: { email: string; password: string }): Promise<{ token: string; user: User }> {
-  return this.request<{ token: string; user: User }>('/users/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json', // 确保告诉后端是 JSON
-    },
-    body: JSON.stringify(credentials),
-  });
+);
+
+// === 类型定义 ===
+export interface LoginRequest {
+  email: string;
+  password: string;
 }
 
-   // 获取当前用户信息
-  async getProfile(): Promise<User> {
-    return this.request<User>('/auth/profile');
-  }
-
-  // 退出登录
-  async logout(): Promise<void> {
-    return this.request<void>('/auth/logout', { method: 'POST' });
-  }
-  private async request<T>(
-  endpoint: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const url = `${this.baseURL}${endpoint}`;
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
-  }
-
-  // 直接解析返回值
-  return response.json() as Promise<T>;
+export interface LoginResponse {
+  user: {
+    id: number;
+    email: string;
+    role: string;
+    name?: string;
+  };
+  // 如果还有其他字段（如 message），也可以加
 }
 
-  // 文章搜索
-  async searchArticles(params: ArticleSearchParams): Promise<ArticleSearchResponse> {
-    return this.request<ArticleSearchResponse>('/articles/search', {
-      method: 'POST',
-      body: JSON.stringify(params),
-    });
-  }
-
-  // 获取文章详情
-  async getArticle(id: string): Promise<Article> {
-    return this.request<Article>(`/articles/${id}`);
-  }
-
-  // 提取信息
-  async extractInformation(content: string, articleId?: string): Promise<ExtractionResult> {
-    return this.request<ExtractionResult>('/extract', {
-      method: 'POST',
-      body: JSON.stringify({ content, articleId }),
-    });
-  }
-
-  // 保存到数据库
-  async saveToDatabase(data: ExtractionResult): Promise<void> {
-    return this.request<void>('/data/save', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  // 获取分析数据
-  async getAnalysisData(filters?: Record<string, never>): Promise<AnalysisData[]> {
-    const queryString = filters ? `?${new URLSearchParams(filters).toString()}` : '';
-    return this.request<AnalysisData[]>(`/analysis/data${queryString}`);
-  }
-
-  // 管理员功能
-  async getUsers(): Promise<User[]> {
-    return this.request<User[]>('/admin/users');
-  }
-
-  async getConfig(): Promise<SystemConfig> {
-    return this.request<SystemConfig>('/admin/config');
-  }
-
-  async updateConfig(config: Partial<SystemConfig>): Promise<void> {
-    return this.request<void>('/admin/config', {
-      method: 'POST',
-      body: JSON.stringify(config),
-    });
-  }
+export interface ApiError {
+  message: string;
+  status?: number;
+  data?: unknown;
 }
 
-export const apiClient = new ApiClient();
+// === API 方法封装 ===
+export const apiClient = {
+  // 登录
+  login: (data: { username: string; password: string }): Promise<{
+    user: {
+      id: string;
+      username: string;
+      email?: string;
+    };
+  }> => api.post('/auth/login', data).then(res => res.data),
+
+  // 获取用户列表（示例）
+  getUsers: (): Promise<unknown[]> =>
+    api.get('/users').then((res) => res.data),
+
+  // 通用方法
+  get: <T>(url: string, params?: unknown): Promise<T> =>
+    api.get(url, { params }).then((res) => res.data),
+
+  post: <T>(url: string, data?: unknown): Promise<T> =>
+    api.post(url, data).then((res) => res.data),
+};
+
+export default apiClient;

@@ -1,25 +1,5 @@
-import {
-  IsEmail,
-  IsString,
-  IsIn,
-  IsBoolean,
-  IsOptional,
-} from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateUserDto } from './create-user.dto';
 
-export class UpdateUserDto {
-  @IsOptional()
-  @IsString()
-  username?: string;
-
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @IsOptional()
-  @IsIn(['admin', 'editor', 'viewer'])
-  role?: 'admin' | 'editor' | 'viewer';
-
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+export class UpdateUserDto extends PartialType(CreateUserDto) {}

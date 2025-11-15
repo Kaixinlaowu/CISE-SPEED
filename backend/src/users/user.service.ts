@@ -1,83 +1,80 @@
-// user.service.ts
-import { Injectable, ConflictException } from '@nestjs/common';
+// src/users/user.service.ts
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './user.schema';
-import { CreateUserDto } from '../dtos/create-user.dto';
-import { UpdateUserDto } from '../dtos/update-user.dto';
+import { User, UserDocument } from './user.schema'; // 正确导入
+import { LoginUserDto } from '../dtos/login-user.dto';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from 'src/dtos/create-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    // 检查邮箱是否已存在
-    const existingUser = await this.findByEmail(createUserDto.email);
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    const user = new this.userModel({
-      ...createUserDto,
-      isActive: createUserDto.isActive ?? true,
-      role: createUserDto.role ?? 'viewer',
-    });
-    return user.save();
-  }
-
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
-  }
-
-  async findOne(id: string): Promise<UserDocument | null> {
-    return this.userModel.findById(id).exec();
-  }
-
-  async findByEmail(email: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ email }).exec();
-  }
-
-  async findByUsername(username: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ username }).exec();
-  }
-
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
-      .exec();
-  }
-
-  async updateLastLogin(id: string): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, { lastLogin: new Date() }, { new: true })
-      .exec();
-  }
-
-  async delete(id: string): Promise<UserDocument | null> {
-    return this.userModel.findByIdAndDelete(id).exec();
-  }
-
-  async deactivate(id: string): Promise<UserDocument | null> {
-    return this.userModel
-      .findByIdAndUpdate(id, { isActive: false }, { new: true })
-      .exec();
-  }
-
-  // 添加密码验证方法到 Service 层
-  async validateUserCredentials(
-    email: string,
-    password: string,
-  ): Promise<UserDocument | null> {
-    const user = await this.findByEmail(email);
+  /** 登录 */
+  async login(dto: LoginUserDto) {
+    // 1. 查找用户（用 username）
+    const user = await this.userModel.findOne({ username: dto.username });
     if (!user) {
-      return null;
+      throw new BadRequestException('用户名或密码错误');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    return isPasswordValid ? user : null;
+    // 2. 验证密码
+    const isMatch = await bcrypt.compare(dto.password, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('用户名或密码错误');
+    }
+
+    // 3. 返回安全数据（不暴露 password）
+    return {
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email, // 可能为 undefined
+      },
+    };
+  }
+
+  /** 获取所有用户（隐藏密码） */
+  async findAll() {
+    return this.userModel.find().select('-password').exec();
+  }
+
+  /** 创建用户 */
+  async create(createUserDto: CreateUserDto) {
+    // 防止重复用户名
+    const existing = await this.userModel.findOne({
+      username: createUserDto.username,
+    });
+    if (existing) {
+      throw new BadRequestException('用户名已存在');
+    }
+
+    // 加密密码
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    // 创建用户
+    const createdUser = await this.userModel.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
+    // 返回时隐藏密码
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...result } = createdUser.toObject();
+    return result;
+  }
+
+  /** （可选）根据 ID 查找用户 */
+  async findOne(id: string) {
+    const user = await this.userModel.findById(id).select('-password');
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+    return user;
   }
 }
